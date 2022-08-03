@@ -1,8 +1,8 @@
 #! /usr/bin/env nextflow
-// Define parameters
 
-params.reads = "~/praktikum/data/gut_{1,2}.fq"
-params.transcriptome_file = "~/praktikum/data/transcriptome.fa"
+// Define parameters
+params.reads = "/home/ec2-user/praktikum/data/*_{1,2}.fq"
+params.transcriptome_file = "/home/ec2-user/praktikum/data/transcriptome.fa"
 params.multiqc = "$projectDir/multiqc"
 params.outdir = "$projectDir/results"
 
@@ -15,4 +15,21 @@ log.info """\
     """
     .stripIndent()
 
-println "ProjectDir: ${projectDir}"
+// Create binary index of transcriptome file
+process index {
+    cpus 2
+    conda "/home/ec2-user/anaconda3/envs/salmon_env"
+    
+    input:
+    path transcriptome from params.transcriptome_file
+
+    output:
+    path "salmon_index" into index_ch
+
+    script:
+    """
+    salmon index --threads $task.cpus -t $transcriptome -i salmon_index
+    """
+}
+
+
