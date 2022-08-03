@@ -15,7 +15,6 @@ log.info """\
     """
     .stripIndent()
 
-
 // Create binary index of transcriptome file
 process index {
     cpus 2
@@ -59,10 +58,10 @@ process quantification {
     """
 }
 
-// Quality control using fastQC
+// Quality control using FastQC
 process fastqc {
     conda "/home/ec2-user/anaconda3/envs/fastqc"
-    tag "fastqc against ${pair_id}"
+    tag "fastqc on ${pair_id}"
 
     input:
     tuple pair_id, path(reads) from read_pairs_ch2
@@ -74,5 +73,23 @@ process fastqc {
     """
     mkdir fastqc_${pair_id}_logs
     fastqc -o fastqc_${pair_id}_logs -f fastq -q ${reads}
+    """
+}
+
+// Multi QC 
+process multiqc {
+
+    conda "/home/ec2-user/anaconda3/envs/multiqc"
+    publishDir params.outdir, mode: "copy"
+
+    input:
+    path '*' from quant_ch.mix(fastqc_ch).collect()
+
+    output:
+    path 'mulitqc_report.html'
+
+    script:
+    """
+    multiqc . --filename 'multiqc_report.html'
     """
 }
