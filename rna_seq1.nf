@@ -1,7 +1,7 @@
 #! /usr/bin/env nextflow
 
 // Define parameters
-params.reads = '/home/ec2-user/praktikum/data/*_{1,3}.fq'
+params.reads = '/home/ec2-user/praktikum/data/*_{1,2}.fq'
 params.transcriptome_file = "/home/ec2-user/praktikum/data/transcriptome.fa"
 params.multiqc = "$projectDir/multiqc"
 params.outdir = "$projectDir/results"
@@ -32,9 +32,28 @@ process index {
     """
 }
 
+// Read Pairs Channel
 Channel
     .fromFilePairs(params.reads, checkIfExists: true)
     .set {read_pairs_ch}
 
-read_pairs_ch.view()
 
+// Quantification
+process quantification {
+    cpus 2
+    conda "/home/ec2-user/anaconda3/envs/salmon_env"
+    tag "$pair_id"
+    publishDir "${params.outdir}/quantification", mode: "copy"
+
+    input:
+    path index from index_ch
+    tuple pair_id, path(reads) from read_pairs_ch
+
+    output:
+    path pair_id into quant_ch
+
+    script:
+    """
+    salmon quant --threads $task.cpus --libType=U -i $index -1 ${reads[0]} -2 ${reads[1]} -o $pair_id
+    """
+}
