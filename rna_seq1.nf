@@ -1,7 +1,7 @@
 #! /usr/bin/env nextflow
 
 // Define parameters
-params.reads = "/home/ec2-user/praktikum/data/*_{1,2}.fq"
+params.reads = '/home/ec2-user/praktikum/data/*_{1,3}.fq'
 params.transcriptome_file = "/home/ec2-user/praktikum/data/transcriptome.fa"
 params.multiqc = "$projectDir/multiqc"
 params.outdir = "$projectDir/results"
@@ -32,4 +32,9 @@ process index {
     """
 }
 
+Channel
+    .fromFilePairs(params.reads, checkIfExists: true)
+    .set {read_pairs_ch}
+
+read_pairs_ch.view()
 
