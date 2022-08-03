@@ -80,7 +80,7 @@ process fastqc {
 process multiqc {
 
     conda "/home/ec2-user/anaconda3/envs/multiqc"
-    publishDir params.outdir, mode: "copy"
+    publishDir params.outdir, mode: 'copy'
 
     input:
     path '*' from quant_ch.mix(fastqc_ch).collect()
