@@ -90,6 +90,10 @@ process multiqc {
 
     script:
     """
-    multiqc . --filename 'multiqc_report.html'
+    multiqc .
     """
+}
+
+workflow.onComplete {
+    log.info(workflow.success ? "\nDone! Open the following report in your browser --> $params.outdir/multiqc_report.html\n" : "Oops.. something went wrong")
 }
