@@ -15,6 +15,7 @@ log.info """\
     """
     .stripIndent()
 
+
 // Create binary index of transcriptome file
 process index {
     cpus 2
@@ -35,12 +36,12 @@ process index {
 // Read Pairs Channel
 Channel
     .fromFilePairs(params.reads, checkIfExists: true)
-    .set {read_pairs_ch}
+    //.set {read_pairs_ch}
+    .into {read_pairs_ch; read_pairs_ch2}
 
 
 // Quantification
 process quantification {
-    cpus 2
     conda "/home/ec2-user/anaconda3/envs/salmon_env"
     tag "$pair_id"
     publishDir "${params.outdir}/quantification", mode: "copy"
@@ -55,5 +56,23 @@ process quantification {
     script:
     """
     salmon quant --threads $task.cpus --libType=U -i $index -1 ${reads[0]} -2 ${reads[1]} -o $pair_id
+    """
+}
+
+// Quality control using fastQC
+process fastqc {
+    conda "/home/ec2-user/anaconda3/envs/fastqc"
+    tag "fastqc against ${pair_id}"
+
+    input:
+    tuple pair_id, path(reads) from read_pairs_ch2
+
+    output:
+    path "fastqc_${pair_id}_logs" into fastqc_ch
+
+    script:
+    """
+    mkdir fastqc_${pair_id}_logs
+    fastqc -o fastqc_${pair_id}_logs -f fastq -q ${reads}
     """
 }
