@@ -1,8 +1,8 @@
 #! /usr/bin/env nextflow
 
 // Define parameters
-params.reads = '/home/ec2-user/praktikum/data/*_{1,2}.fq'
-params.transcriptome_file = "/home/ec2-user/praktikum/data/transcriptome.fa"
+params.reads = '/home/ec2-user/praktikum/testdata/*_{1,2}.fq'
+params.transcriptome_file = "/home/ec2-user/praktikum/testdata/transcriptome.fa"
 params.multiqc = "$projectDir/multiqc"
 params.outdir = "$projectDir/results"
 
@@ -86,7 +86,7 @@ process multiqc {
     path '*' from quant_ch.mix(fastqc_ch).collect()
 
     output:
-    path 'mulitqc_report.html'
+    path 'multiqc_report.html'
 
     script:
     """
